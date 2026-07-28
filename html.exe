@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Live - ¡Déjenme Dormir!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            user-select: none;
+            overflow-x: hidden;
+        }
+        
+        @keyframes floatZ {
+            0% { transform: translateY(0) scale(0.6) rotate(-10deg); opacity: 0; }
+            50% { opacity: 0.9; }
+            100% { transform: translateY(-90px) scale(1.3) rotate(15deg); opacity: 0; }
+        }
+
+        .zzz-particle {
+            position: absolute;
+            animation: floatZ 3s ease-out infinite;
+            font-weight: bold;
+            color: #a7f3d0;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.03, 0.97) translateY(4px); }
+        }
+
+        .sleeping-anim {
+            animation: breathe 3.5s ease-in-out infinite;
+        }
+
+        @keyframes wakeUpShake {
+            0% { transform: scale(1) rotate(0deg); }
+            15% { transform: scale(1.2) rotate(-8deg); }
+            30% { transform: scale(1.25) rotate(8deg); }
+            45% { transform: scale(1.15) rotate(-5deg); }
+            60% { transform: scale(1.2) rotate(5deg); }
+            100% { transform: scale(1.1) rotate(0deg); }
+        }
+
+        .wake-anim {
+            animation: wakeUpShake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .gift-pop {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) translateY(50px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col justify-between relative overflow-x-hidden">
+
+    <div id="startModal" class="fixed inset-0 bg-slate-950/95 z-50 flex flex-col items-center justify-center p-6 text-center backdrop-blur-md">
+        <div class="max-w-md w-full bg-slate-900 border-2 border-indigo-500/30 p-8 rounded-3xl shadow-2xl space-y-6">
+            <div class="w-24 h-24 mx-auto bg-indigo-600/20 rounded-full flex items-center justify-center text-5xl text-indigo-400 animate-bounce">
+                <i class="fa-solid fa-bed"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-black bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+                    ¡Déjenme Dormir!
+                </h1>
+                <p class="text-slate-400 text-sm mt-2">
+                    Aplicación interactiva para tus <b>TikTok Live</b>. El personaje duerme plácidamente y despierta furioso/divertido cada vez que recibe un regalo.
+                </p>
+            </div>
+            <button id="btnStartApp" class="w-full py-4 bg-gradient-to-r from-pink-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg transform transition active:scale-95 text-lg flex items-center justify-center gap-3">
+                <i class="fa-solid fa-play"></i>
+                Iniciar Transmisión
+            </button>
+        </div>
+    </div>
+
+    <header class="p-4 bg-slate-900/80 border-b border-slate-800/80 backdrop-blur-md flex flex-wrap justify-between items-center gap-4 z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-400 text-xl">
+                <i class="fa-brands fa-tiktok"></i>
+            </div>
+            <div>
+                <h2 class="font-bold text-slate-100 text-lg leading-tight">TikTok Sleep Live</h2>
+                <span class="text-xs text-emerald-400 flex items-center gap-1.5 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    Listo para directo
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/40 text-pink-300 text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-sparkles text-yellow-300 animate-spin"></i>
+                <span>Gemini 3 AI Voice</span>
+            </span>
+
+            <button id="btnOpenConnectModal" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition flex items-center gap-2 text-sm border border-slate-700">
+                <span id="tikTokStatusDot" class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                <span id="tikTokStatusText" class="font-semibold text-xs">TikTok Live: Desconectado</span>
+            </button>
+
+            <button id="btnMuteSound" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition flex items-center gap-2 text-sm">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-indigo-400"></i>
+            </button>
+
+            <button id="btnToggleOverlay" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-expand text-pink-400"></i>
+                <span class="hidden sm:inline font-semibold text-xs">Modo OBS / Pantalla</span>
+            </button>
+
+            <button id="btnAutoSimulate" class="p-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 transition flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-robot text-emerald-400"></i>
+                <span class="hidden sm:inline font-semibold text-xs">Simular Auto</span>
+            </button>
+        </div>
+    </header>
+
+    <div id="connectModal" class="hidden fixed inset-0 bg-slate-950/90 z-50 flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-xl font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-brands fa-tiktok text-pink-500"></i>
+                    Conectar con TikTok Live Automático
+                </h3>
+                <button id="btnCloseConnectModal" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-indigo-950/50 border border-indigo-500/30 p-4 rounded-2xl text-xs text-indigo-200 leading-relaxed">
+                    <p class="font-bold text-sm text-indigo-300 mb-1">⚡ Conexión Directa en Tiempo Real</p>
+                    Para escuchar regalos en vivo automáticamente, ejecuta nuestro conector puente (Node.js) en tu PC antes de transmitir.
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-300 uppercase">1. Dirección WebSocket Servidor</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="inputWsUrl" value="ws://localhost:8081" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+                        <button id="btnConnectWs" class="bg-pink-600 hover:bg-pink-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+                            Conectar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-2 border-t border-slate-800 pt-4">
+                    <label class="block text-xs font-bold text-pink-400 uppercase">2. Script para tu PC (Node.js Connector)</label>
+                    <p class="text-xs text-slate-400">Ingresa tu usuario de TikTok para personalizar el script automáticamente:</p>
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="inputTikTokUserConfig" placeholder="Ejemplo: minombre_tiktok" value="tu_usuario_tiktok" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-pink-500">
+                    </div>
+                    
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] font-mono text-emerald-400 overflow-x-auto relative group">
+                        <pre id="codeConnector">// 1. Ejecuta en tu terminal: npm install tiktok-live-connector ws
+// 2. Guarda esto como server.js y ejecútalo con: node server.js
+
+const { WebcastPushConnection } = require('tiktok-live-connector');
+const { WebSocketServer } = require('ws');
+
+const USERNAME = '<span id="scriptUsernameText">tu_usuario_tiktok</span>'; 
+const wss = new WebSocketServer({ port: 8081 });
+let tiktok = new WebcastPushConnection(USERNAME);
+
+console.log(`🔌 Conectando con el Live de TikTok de @${USERNAME}...`);
+
+tiktok.connect().then(state => {
+    console.log(`✅ ¡Conectado al Live de TikTok! Room ID: ${state.roomId}`);
+}).catch(err => {
+    console.error('❌ Error de conexión:', err);
+});
+
+tiktok.on('gift', (data) => {
+    if (data.giftType === 1 && data.repeatEnd === 0) return;
+
+    console.log(`🎁 Regalo recibido: ${data.giftName} de @${data.uniqueId}`);
+    const payload = JSON.stringify({
+        type: 'gift',
+        giftName: data.giftName,
+        uniqueId: data.uniqueId,
+        repeatCount: data.repeatCount || 1
+    });
+
+    wss.clients.forEach(client => {
+        if (client.readyState === 1) client.send(payload);
+    });
+});</pre>
+                        <button id="btnCopyScriptCode" class="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded text-[10px] font-sans transition">
+                            <i class="fa-regular fa-copy"></i> Copiar Código
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main id="stageArea" class="flex-1 relative flex flex-col items-center justify-center p-4 min-h-[420px] transition-all duration-500 overflow-hidden">
+        
+        <div id="roomBg" class="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950/80 to-slate-950 -z-10 transition-all duration-700"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.15)_0,transparent_70%)] -z-10"></div>
+
+        <div class="absolute top-8 left-10 text-slate-700/30 text-4xl animate-pulse"><i class="fa-solid fa-moon"></i></div>
+        <div class="absolute top-20 right-16 text-slate-700/20 text-2xl"><i class="fa-solid fa-star"></i></div>
+        <div class="absolute top-12 right-1/3 text-slate-700/20 text-xl"><i class="fa-solid fa-star"></i></div>
+
+        <div id="dreamBubble" class="absolute top-16 bg-indigo-900/60 border border-indigo-400/40 text-indigo-200 px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold backdrop-blur-md transition-all duration-500 flex items-center gap-2 max-w-xs text-center shadow-lg">
+            <i class="fa-solid fa-cloud-moon text-pink-400 animate-pulse"></i>
+            <span id="dreamText">Soñando con millones de rosas de TikTok... 💤</span>
+        </div>
+
+        <div id="speechBubble" class="mb-4 bg-white text-slate-900 px-6 py-3 rounded-3xl rounded-bl-none shadow-2xl border-4 border-indigo-400 transform transition-all duration-300 opacity-90 scale-95 flex items-center gap-3 z-20 max-w-sm text-center">
+            <span id="speechText" class="font-extrabold text-lg sm:text-xl text-indigo-900 leading-snug">
+                Zzz... Zzz... 💤
+            </span>
+        </div>
+
+        <div id="giftBanner" class="hidden absolute top-12 z-30 gift-pop bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white px-6 py-3 rounded-full shadow-2xl border-2 border-white/40 flex items-center gap-3">
+            <div id="giftBannerIcon" class="text-3xl text-yellow-300">
+                🎁
+            </div>
+            <div class="text-left">
+                <p id="giftBannerUser" class="text-xs uppercase tracking-wider text-pink-200 font-bold">¡Nuevo Regalo!</p>
+                <p id="giftBannerName" class="font-black text-base sm:text-lg">¡Ha enviado una Rosa!</p>
+            </div>
+        </div>
+
+        <div class="relative flex flex-col items-center justify-center my-auto cursor-pointer" id="characterClickZone">
+            <div id="zzzContainer" class="absolute -top-12 -right-4 w-20 h-24 pointer-events-none"></div>
+
+            <div id="characterBody" class="sleeping-anim relative transition-all duration-300"></div>
+
+            <div id="bedBase" class="w-64 sm:w-80 h-16 bg-slate-800 border-t-4 border-indigo-500/50 rounded-b-3xl shadow-2xl relative flex items-center justify-center -mt-6 -z-10">
+                <div class="w-11/12 h-3 bg-indigo-950/60 rounded-full"></div>
+                <div class="absolute -bottom-6 w-3/4 h-6 bg-black/60 rounded-full blur-md"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer id="controlPanel" class="bg-slate-900 border-t border-slate-800 p-4 sm:p-6 z-20 transition-all duration-300">
+        <div class="max-w-6xl mx-auto space-y-5">
+            
+            <div>
+                <div class="flex items-center justify-between mb-2.5">
+                    <span class="text-xs uppercase font-bold text-pink-400 tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-gift"></i>
+                        Simular Regalos de TikTok (Toca para activar)
+                    </span>
+                    <span class="text-xs text-slate-400">O toca al personaje para despertar</span>
+                </div>
+                
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+                    <button onclick="triggerGift('Tac Tac', '👆❤️', 'baja')" class="p-3 bg-slate-800/90 hover:bg-pink-950/50 border border-slate-700/60 hover:border-pink-500/60 rounded-2xl flex flex-col items-center transition group active:scale-95 shadow-md">
+                        <span class="text-2xl group-hover:scale-125 transition transform">👆❤️</span>
+                        <span class="text-xs font-bold mt-1 text-slate-200 text-center leading-tight">Gracias por tu tac tac</span>
+                        <span class="text-[10px] text-pink-400 font-semibold">Likes</span>
+                    </button>
+                    
+                    <button onclick="triggerGift('TikTok', '🎵', 'baja')" class="p-3 bg-slate-800/90 hover:bg-cyan-950/50 border border-slate-700/60 hover:border-cyan-500/60 rounded-2xl flex flex-col items-center transition group active:scale-95 shadow-md">
+                        <span class="text-2xl group-hover:scale-125 transition transform">🎵</span>
+                        <span class="text-xs font-bold mt-1 text-slate-200">TikTok</span>
+                        <span class="text-[10px] text-cyan-400 font-semibold">1 Coin</span>
+                    </button>
+
+                    <button onclick="triggerGift('Dona', '🍩', 'media')" class="p-3 bg-slate-800/90 hover:bg-amber-950/50 border border-slate-700/60 hover:border-amber-500/60 rounded-2xl flex flex-col items-center transition group active:scale-95 shadow-md">
+                        <span class="text-2xl group-hover:scale-125 transition transform">🍩</span>
+                        <span class="text-xs font-bold mt-1 text-slate-200">Dona</span>
+                        <span class="text-[10px] text-amber-400 font-semibold">30 Coins</span>
+                    </button>
+
+                    <button onclick="triggerGift('Perfume', '🧴', 'media')" class="p-3 bg-slate-800/90 hover:bg-purple-950/50 border border-slate-700/60 hover:border-purple-500/60 rounded-2xl flex flex-col items-center transition group active:scale-95 shadow-md">
+                        <span class="text-2xl group-hover:scale-125 transition transform">🧴</span>
+                        <span class="text-xs font-bold mt-1 text-slate-200">Perfume</span>
+                        <span class="text-[10px] text-purple-400 font-semibold">100 Coins</span>
+                    </button>
+
+                    <button onclick="triggerGift('León', '🦁', 'alta')" class="p-3 bg-slate-800/90 hover:bg-orange-950/50 border border-slate-700/60 hover:border-orange-500/60 rounded-2xl flex flex-col items-center transition group active:scale-95 shadow-md">
+                        <span class="text-2xl group-hover:scale-125 transition transform">🦁</span>
+                        <span class="text-xs font-bold mt-1 text-slate-200">León</span>
+                        <span class="text-[10px] text-orange-400 font-semibold">29999 Coins</span>
+                    </button>
+
+                    <button onclick="triggerGift('Universo', '🌌', 'alta')" class="p-3 bg-slate-800/90 hover:bg-indigo-950/50 border border-slate-700/60 hover:border-indigo-500/60 rounded-2xl flex flex-col items-center transition group active:scale-95 shadow-md">
+                        <span class="text-2xl group-hover:scale-125 transition transform">🌌</span>
+                        <span class="text-xs font-bold mt-1 text-slate-200">Universo</span>
+                        <span class="text-[10px] text-indigo-400 font-semibold">34999 Coins</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-800">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Personaje</label>
+                    <div class="grid grid-cols-4 gap-2" id="characterPicker"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-pink-400 mb-2 uppercase flex items-center justify-between">
+                        <span><i class="fa-solid fa-wand-magic-sparkles"></i> Voz AI Gemini</span>
+                        <span id="aiLoadingIndicator" class="hidden text-[10px] text-yellow-400 animate-pulse">Pensando...</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="selectGeminiVoice" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+                            <option value="Zephyr">Zephyr (Brillante)</option>
+                            <option value="Puck">Puck (Alegre / Dinámico)</option>
+                            <option value="Fenrir" selected>Fenrir (Enojado / Efusivo)</option>
+                            <option value="Aoede">Aoede (Espontáneo)</option>
+                            <option value="Kore">Kore (Firme)</option>
+                            <option value="Gacrux">Gacrux (Grave)</option>
+                        </select>
+                        <input type="text" id="inputViewerName" placeholder="@UsuarioTikTok" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase flex items-center justify-between">
+                        <span>Segundos despierto</span>
+                        <label class="inline-flex items-center cursor-pointer text-[10px] text-indigo-300">
+                            <input type="checkbox" id="chkEnableAiDreams" checked class="sr-only peer">
+                            <div class="relative w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600"></div>
+                            <span class="ms-1.5 font-medium">Sueños AI</span>
+                        </label>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input type="range" id="rangeAwakeTime" min="2" max="10" value="4" class="w-full accent-indigo-500">
+                        <span id="lblAwakeTime" class="text-sm font-bold text-indigo-400 w-8">4s</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </footer>
+
+    <button id="btnExitOverlay" class="hidden fixed top-4 right-4 z-50 bg-slate-900/90 hover:bg-slate-800 text-white px-4 py-2 rounded-full border border-slate-700 text-sm font-bold shadow-2xl flex items-center gap-2">
+        <i class="fa-solid fa-compress"></i> Mostrar Panel
+    </button>
+
+    <script>
+        let isAudioMuted = false;
+        let isAwake = false;
+        let awakeTimer = null;
+        let autoSimInterval = null;
+        let dreamInterval = null;
+        let zzzInterval = null;
+        let currentAudioSource = null;
+        let socketClient = null;
+        let autoReconnectWs = true;
+
+        const apiKey = "";
+        const GEMINI_TEXT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const GEMINI_TTS_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+        let currentCharacterId = 'panchito';
+
+        function pcmToWav(pcm16Data, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcm16Data.length * 2);
+            const view = new DataView(buffer);
+
+            function writeString(offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + pcm16Data.length * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, pcm16Data.length * 2, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16Data.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16Data[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function base64ToUint8Array(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        async function fetchGeminiWakeUpPhrase(characterName, giftName, username) {
+            const indicator = document.getElementById('aiLoadingIndicator');
+            if (indicator) indicator.classList.remove('hidden');
+
+            const viewerPrompt = username ? `del usuario ${username}` : 'de un espectador';
+            const actionPrompt = giftName.includes('Tac Tac') ? 'muchos Me Gusta / Tac Tac en la pantalla' : `un regalo de TikTok (${giftName})`;
+            const prompt = `Actúa como el personaje '${characterName}' que está profundamente dormido. Acaba de recibir ${actionPrompt} ${viewerPrompt} y se despierta divertido/molesto. Escribe una sola frase súper corta, graciosa y cómica (máximo 12 palabras) quejándose o agradeciendo el tac tac pero pidiendo que lo dejen dormir.`;
+
+            try {
+                const response = await fetch(GEMINI_TEXT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: "Responde únicamente con la frase en español. Sé cómico, enérgico y espontáneo." }] }
+                    })
+                });
+
+                const data = await response.json();
+                const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                if (textResult) return textResult;
+            } catch (err) {
+                console.warn("Falló Gemini Text API, usando frase por defecto", err);
+            } finally {
+                if (indicator) indicator.classList.add('hidden');
+            }
+
+            return `¡Déjenme dormir! ¿Quién me mandó ese ${giftName}?`;
+        }
+
+        async function playGeminiTTS(text, voiceName = 'Fenrir') {
+            if (isAudioMuted) return;
+
+            try {
+                const promptText = `Di enérgicamente y con voz cómica y molesta: ${text}`;
+                const payload = {
+                    contents: [{ parts: [{ text: promptText }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: voiceName }
+                            }
+                        }
+                    }
+                };
+
+                const response = await fetch(GEMINI_TTS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioBase64 = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType || '';
+
+                if (audioBase64 && mimeType.startsWith("audio/")) {
+                    const match = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = match ? parseInt(match[1], 10) : 24000;
+                    
+                    const pcmBuffer = base64ToUint8Array(audioBase64);
+                    const pcm16 = new Int16Array(pcmBuffer.buffer);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    if (currentAudioSource) {
+                        currentAudioSource.pause();
+                    }
+
+                    const audio = new Audio(audioUrl);
+                    currentAudioSource = audio;
+                    audio.play();
+                    return;
+                }
+            } catch (e) {
+                console.warn("Falló Gemini TTS, utilizando sintetizador básico como respaldo", e);
+            }
+
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'es-ES';
+                u.rate = 1.1;
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        async function fetchGeminiDream() {
+            if (isAwake) return;
+            const enableDreams = document.getElementById('chkEnableAiDreams')?.checked;
+            if (!enableDreams) return;
+
+            const charData = CHARACTERS[currentCharacterId];
+            const prompt = `Escribe un pensamiento de sueño cómico y disparatado en 6 palabras para el personaje ${charData.name} mientras duerme plácidamente.`;
+
+            try {
+                const response = await fetch(GEMINI_TEXT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+                const data = await response.json();
+                const dream = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                if (dream) {
+                    const dreamEl = document.getElementById('dreamText');
+                    if (dreamEl) dreamEl.innerText = `${dream} 💤`;
+                }
+            } catch (e) {}
+        }
+
+        const CHARACTERS = {
+            panchito: {
+                name: 'Panchito',
+                icon: '🧔‍♂️',
+                color: '#6366f1',
+                renderSVG: (awake) => `
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="drop-shadow-xl">
+                        <rect x="25" y="100" width="150" height="70" rx="20" fill="#cbd5e1" />
+                        <path d="M40 140 Q100 120 160 140 L160 180 L40 180 Z" fill="#3b82f6" />
+                        <circle cx="100" cy="110" r="45" fill="#fca5a5" />
+                        <path d="M60 100 Q100 60 140 100 Q130 75 100 70 Q70 75 60 100 Z" fill="#475569" />
+                        ${awake ? `
+                            <circle cx="85" cy="105" r="9" fill="white" />
+                            <circle cx="115" cy="105" r="9" fill="white" />
+                            <circle cx="85" cy="105" r="4" fill="#0f172a" />
+                            <circle cx="115" cy="105" r="4" fill="#0f172a" />
+                            <path d="M75 90 L95 96" stroke="#475569" stroke-width="4" stroke-linecap="round"/>
+                            <path d="M125 90 L105 96" stroke="#475569" stroke-width="4" stroke-linecap="round"/>
+                            <ellipse cx="100" cy="128" rx="12" ry="16" fill="#991b1b" />
+                            <path d="M92 118 Q100 122 108 118" stroke="white" stroke-width="3" fill="none"/>
+                        ` : `
+                            <path d="M78 108 Q85 114 92 108" stroke="#475569" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M108 108 Q115 114 122 108" stroke="#475569" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M93 125 Q100 129 107 125" stroke="#475569" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <circle cx="72" cy="115" r="6" fill="#f43f5e" opacity="0.4" />
+                            <circle cx="128" cy="115" r="6" fill="#f43f5e" opacity="0.4" />
+                        `}
+                    </svg>
+                `
+            },
+            mishi: {
+                name: 'Mishi',
+                icon: '🐱',
+                color: '#f59e0b',
+                renderSVG: (awake) => `
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="drop-shadow-xl">
+                        <rect x="30" y="110" width="140" height="60" rx="18" fill="#fde68a" />
+                        <polygon points="60,65 80,100 45,95" fill="#f59e0b" />
+                        <polygon points="140,65 120,100 155,95" fill="#f59e0b" />
+                        <ellipse cx="100" cy="115" rx="50" ry="40" fill="#fbbf24" />
+                        <ellipse cx="100" cy="122" rx="14" ry="10" fill="white" />
+                        <polygon points="97,118 103,118 100,122" fill="#f43f5e" />
+                        ${awake ? `
+                            <ellipse cx="80" cy="108" rx="8" ry="12" fill="#10b981" />
+                            <ellipse cx="120" cy="108" rx="8" ry="12" fill="#10b981" />
+                            <line x1="80" y1="98" x2="80" y2="118" stroke="#064e3b" stroke-width="2.5"/>
+                            <line x1="120" y1="98" x2="120" y2="118" stroke="#064e3b" stroke-width="2.5"/>
+                            <path d="M92 128 Q100 122 108 128" stroke="#78350f" stroke-width="3" fill="none"/>
+                        ` : `
+                            <path d="M72 110 Q80 115 88 110" stroke="#78350f" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M112 110 Q120 115 128 110" stroke="#78350f" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M95 124 Q100 127 105 124" stroke="#78350f" stroke-width="2.5" fill="none"/>
+                        `}
+                        <line x1="55" y1="118" x2="35" y2="115" stroke="#78350f" stroke-width="2"/>
+                        <line x1="55" y1="123" x2="38" y2="125" stroke="#78350f" stroke-width="2"/>
+                        <line x1="145" y1="118" x2="165" y2="115" stroke="#78350f" stroke-width="2"/>
+                        <line x1="145" y1="123" x2="162" y2="125" stroke="#78350f" stroke-width="2"/>
+                    </svg>
+                `
+            },
+            osito: {
+                name: 'Osito',
+                icon: '🐻',
+                color: '#84cc16',
+                renderSVG: (awake) => `
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="drop-shadow-xl">
+                        <path d="M30 130 Q100 110 170 130 L170 180 L30 180 Z" fill="#b45309" />
+                        <circle cx="60" cy="75" r="18" fill="#78350f" />
+                        <circle cx="140" cy="75" r="18" fill="#78350f" />
+                        <circle cx="100" cy="110" r="48" fill="#92400e" />
+                        <ellipse cx="100" cy="120" rx="20" ry="15" fill="#fde68a" />
+                        <ellipse cx="100" cy="113" rx="8" ry="6" fill="#451a03" />
+                        ${awake ? `
+                            <circle cx="80" cy="100" r="7" fill="white" />
+                            <circle cx="120" cy="100" r="7" fill="white" />
+                            <circle cx="80" cy="100" r="3" fill="black" />
+                            <circle cx="120" cy="100" r="3" fill="black" />
+                            <path d="M92 127 Q100 135 108 127" stroke="#451a03" stroke-width="3" fill="none"/>
+                        ` : `
+                            <path d="M74 102 Q82 107 90 102" stroke="#fde68a" stroke-width="3" fill="none"/>
+                            <path d="M110 102 Q118 107 126 102" stroke="#fde68a" stroke-width="3" fill="none"/>
+                            <path d="M95 125 Q100 128 105 125" stroke="#451a03" stroke-width="2.5" fill="none"/>
+                        `}
+                    </svg>
+                `
+            },
+            nube: {
+                name: 'Nube',
+                icon: '☁️',
+                color: '#38bdf8',
+                renderSVG: (awake) => `
+                    <svg width="180" height="180" viewBox="0 0 200 200" class="drop-shadow-xl">
+                        <path d="M 50 130 A 25 25 0 0 1 60 80 A 35 35 0 0 1 120 65 A 30 30 0 0 1 160 95 A 25 25 0 0 1 150 140 Z" fill="${awake ? '#e0f2fe' : '#bae6fd'}" />
+                        ${awake ? `
+                            <circle cx="85" cy="100" r="6" fill="#0369a1" />
+                            <circle cx="125" cy="100" r="6" fill="#0369a1" />
+                            <circle cx="87" cy="98" r="2" fill="white" />
+                            <circle cx="127" cy="98" r="2" fill="white" />
+                            <path d="M98 112 Q105 120 112 112" stroke="#0369a1" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <polygon points="145,60 135,75 142,75 132,90" fill="#facc15" />
+                        ` : `
+                            <path d="M78 102 Q85 107 92 102" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M118 102 Q125 107 132 102" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M100 112 Q105 115 110 112" stroke="#0284c7" stroke-width="2.5" fill="none"/>
+                            <circle cx="72" cy="110" r="5" fill="#f43f5e" opacity="0.3" />
+                            <circle cx="138" cy="110" r="5" fill="#f43f5e" opacity="0.3" />
+                        `}
+                    </svg>
+                `
+            }
+        };
+
+        function playBeepSound(type) {
+            if (isAudioMuted) return;
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                if (type === 'wake') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+                } else if (type === 'gift') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+                    osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.5);
+                }
+            } catch(e) {}
+        }
+
+        function renderCharacter() {
+            const container = document.getElementById('characterBody');
+            const charData = CHARACTERS[currentCharacterId];
+            if (!container || !charData) return;
+            
+            container.innerHTML = charData.renderSVG(isAwake);
+            
+            if (isAwake) {
+                container.classList.remove('sleeping-anim');
+                container.classList.add('wake-anim');
+            } else {
+                container.classList.remove('wake-anim');
+                container.classList.add('sleeping-anim');
+            }
+        }
+
+        function initCharacterPicker() {
+            const picker = document.getElementById('characterPicker');
+            if (!picker) return;
+            picker.innerHTML = '';
+            Object.keys(CHARACTERS).forEach(id => {
+                const char = CHARACTERS[id];
+                const btn = document.createElement('button');
+                btn.className = `p-2 rounded-xl flex flex-col items-center justify-center border transition ${currentCharacterId === id ? 'bg-indigo-600/30 border-indigo-500' : 'bg-slate-800 border-slate-700 hover:border-slate-600'}`;
+                btn.innerHTML = `<span class="text-xl">${char.icon}</span><span class="text-[10px] font-bold mt-1 text-slate-300">${char.name}</span>`;
+                btn.onclick = () => {
+                    currentCharacterId = id;
+                    initCharacterPicker();
+                    renderCharacter();
+                };
+                picker.appendChild(btn);
+            });
+        }
+
+        function createZzzParticle() {
+            if (isAwake) return;
+            
+            const container = document.getElementById('zzzContainer');
+            if (!container) return;
+            const zzz = document.createElement('div');
+            zzz.className = 'zzz-particle';
+            zzz.innerText = Math.random() > 0.5 ? 'Zzz...' : 'Z';
+            zzz.style.left = `${Math.random() * 40}px`;
+            zzz.style.fontSize = `${Math.floor(Math.random() * 14) + 18}px`;
+            
+            container.appendChild(zzz);
+            setTimeout(() => zzz.remove(), 3000);
+        }
+
+        function triggerGift(giftName, giftIcon, intensity = 'baja') {
+            playBeepSound('gift');
+            
+            const banner = document.getElementById('giftBanner');
+            if (banner) {
+                document.getElementById('giftBannerIcon').innerText = giftIcon;
+                document.getElementById('giftBannerName').innerText = `¡Ha enviado un ${giftName}!`;
+                banner.classList.remove('hidden');
+
+                setTimeout(() => {
+                    banner.classList.add('hidden');
+                }, 3500);
+            }
+
+            wakeUpCharacter(giftName);
+        }
+
+        async function wakeUpCharacter(giftSource = null) {
+            isAwake = true;
+            playBeepSound('wake');
+            renderCharacter();
+
+            const charData = CHARACTERS[currentCharacterId];
+            const username = document.getElementById('inputViewerName')?.value.trim();
+            const giftName = giftSource || 'Regalo';
+
+            let phrase = await fetchGeminiWakeUpPhrase(charData.name, giftName, username);
+
+            const bubble = document.getElementById('speechBubble');
+            const speechText = document.getElementById('speechText');
+            if (speechText) speechText.innerText = phrase;
+            if (bubble) {
+                bubble.classList.remove('scale-95', 'opacity-90');
+                bubble.classList.add('scale-110', 'opacity-100', 'border-pink-500');
+            }
+
+            const selectedVoice = document.getElementById('selectGeminiVoice')?.value || 'Fenrir';
+            playGeminiTTS(phrase, selectedVoice);
+
+            if (awakeTimer) clearTimeout(awakeTimer);
+            
+            const seconds = parseInt(document.getElementById('rangeAwakeTime').value) || 4;
+            awakeTimer = setTimeout(() => {
+                goBackToSleep();
+            }, seconds * 1000);
+        }
+
+        function goBackToSleep() {
+            isAwake = false;
+            renderCharacter();
+
+            const bubble = document.getElementById('speechBubble');
+            const speechText = document.getElementById('speechText');
+            if (speechText) speechText.innerText = "Zzz... Zzz... 💤";
+            if (bubble) {
+                bubble.classList.remove('scale-110', 'opacity-100', 'border-pink-500');
+                bubble.classList.add('scale-95', 'opacity-90');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharacterPicker();
+            renderCharacter();
+
+            zzzInterval = setInterval(createZzzParticle, 12000);
+
+            const btnStartApp = document.getElementById('btnStartApp');
+            if (btnStartApp) {
+                btnStartApp.onclick = () => {
+                    const modal = document.getElementById('startModal');
+                    if (modal) modal.classList.add('hidden');
+                    if (dreamInterval) clearInterval(dreamInterval);
+                    dreamInterval = setInterval(fetchGeminiDream, 12000);
+                    fetchGeminiDream();
+                };
+            }
+
+            const connectModal = document.getElementById('connectModal');
+            const btnOpenConnectModal = document.getElementById('btnOpenConnectModal');
+            const btnCloseConnectModal = document.getElementById('btnCloseConnectModal');
+
+            if (btnOpenConnectModal && connectModal) {
+                btnOpenConnectModal.onclick = () => connectModal.classList.remove('hidden');
+            }
+            if (btnCloseConnectModal && connectModal) {
+                btnCloseConnectModal.onclick = () => connectModal.classList.add('hidden');
+            }
+
+            const inputTikTokUserConfig = document.getElementById('inputTikTokUserConfig');
+            const scriptUsernameText = document.getElementById('scriptUsernameText');
+            if (inputTikTokUserConfig) {
+                inputTikTokUserConfig.oninput = (e) => {
+                    const cleanUser = e.target.value.replace('@', '').trim() || 'tu_usuario_tiktok';
+                    if (scriptUsernameText) scriptUsernameText.innerText = cleanUser;
+                };
+            }
+
+            const btnCopyScriptCode = document.getElementById('btnCopyScriptCode');
+            if (btnCopyScriptCode) {
+                btnCopyScriptCode.onclick = () => {
+                    const code = document.getElementById('codeConnector').innerText;
+                    navigator.clipboard.writeText(code);
+                    btnCopyScriptCode.innerText = '¡Copiado!';
+                    setTimeout(() => { btnCopyScriptCode.innerHTML = '<i class="fa-regular fa-copy"></i> Copiar Código'; }, 2000);
+                };
+            }
+
+            function connectWebSocket() {
+                const wsUrlInput = document.getElementById('inputWsUrl');
+                if (!wsUrlInput) return;
+                const wsUrl = wsUrlInput.value.trim();
+                const statusDot = document.getElementById('tikTokStatusDot');
+                const statusText = document.getElementById('tikTokStatusText');
+
+                if (socketClient) {
+                    socketClient.onclose = null;
+                    socketClient.close();
+                }
+
+                try {
+                    socketClient = new WebSocket(wsUrl);
+
+                    socketClient.onopen = () => {
+                        if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping';
+                        if (statusText) statusText.innerText = 'TikTok Live: Conectado 🔥';
+                        if (connectModal) connectModal.classList.add('hidden');
+                    };
+
+                    socketClient.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            if (data.type === 'gift') {
+                                if (data.uniqueId) {
+                                    const viewerInput = document.getElementById('inputViewerName');
+                                    if (viewerInput) viewerInput.value = `@${data.uniqueId}`;
+                                }
+                                triggerGift(data.giftName || 'Regalo', '🎁', 'alta');
+                            }
+                        } catch(err) {}
+                    };
+
+                    socketClient.onerror = () => {
+                        if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+                        if (statusText) statusText.innerText = 'Desconectado';
+                    };
+
+                    socketClient.onclose = () => {
+                        if (statusDot) statusDot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+                        if (statusText) statusText.innerText = 'TikTok Live: Desconectado';
+                        if (autoReconnectWs) {
+                            setTimeout(connectWebSocket, 4000);
+                        }
+                    };
+                } catch(e) {
+                    if (statusText) statusText.innerText = 'URL Inválida';
+                }
+            }
+
+            const btnConnectWs = document.getElementById('btnConnectWs');
+            if (btnConnectWs) {
+                btnConnectWs.onclick = connectWebSocket;
+            }
+
+            const characterClickZone = document.getElementById('characterClickZone');
+            if (characterClickZone) {
+                characterClickZone.onclick = () => wakeUpCharacter();
+            }
+
+            const btnMuteSound = document.getElementById('btnMuteSound');
+            if (btnMuteSound) {
+                btnMuteSound.onclick = () => {
+                    isAudioMuted = !isAudioMuted;
+                    const icon = document.getElementById('soundIcon');
+                    if (icon) {
+                        icon.className = isAudioMuted ? 'fa-solid fa-volume-xmark text-red-400' : 'fa-solid fa-volume-high text-indigo-400';
+                    }
+                };
+            }
+
+            const rangeAwake = document.getElementById('rangeAwakeTime');
+            const lblAwake = document.getElementById('lblAwakeTime');
+            if (rangeAwake && lblAwake) {
+                rangeAwake.oninput = (e) => {
+                    lblAwake.innerText = `${e.target.value}s`;
+                };
+            }
+
+            const btnToggleOverlay = document.getElementById('btnToggleOverlay');
+            const btnExitOverlay = document.getElementById('btnExitOverlay');
+            const controlPanel = document.getElementById('controlPanel');
+            const header = document.querySelector('header');
+
+            const toggleOverlayMode = (enable) => {
+                if (enable) {
+                    if (controlPanel) controlPanel.classList.add('hidden');
+                    if (header) header.classList.add('hidden');
+                    if (btnExitOverlay) btnExitOverlay.classList.remove('hidden');
+                } else {
+                    if (controlPanel) controlPanel.classList.remove('hidden');
+                    if (header) header.classList.remove('hidden');
+                    if (btnExitOverlay) btnExitOverlay.classList.add('hidden');
+                }
+            };
+
+            if (btnToggleOverlay) btnToggleOverlay.onclick = () => toggleOverlayMode(true);
+            if (btnExitOverlay) btnExitOverlay.onclick = () => toggleOverlayMode(false);
+
+            let autoSimulating = false;
+            const btnAutoSimulate = document.getElementById('btnAutoSimulate');
+            if (btnAutoSimulate) {
+                btnAutoSimulate.onclick = (e) => {
+                    autoSimulating = !autoSimulating;
+                    const btn = e.currentTarget;
+                    
+                    if (autoSimulating) {
+                        btn.classList.add('bg-pink-600', 'text-white');
+                        btn.classList.remove('bg-slate-800');
+                        
+                        const gifts = [
+                            { name: 'Tac Tac', icon: '👆❤️', type: 'baja' },
+                            { name: 'Rosa', icon: '🌹', type: 'baja' },
+                            { name: 'Dona', icon: '🍩', type: 'media' },
+                            { name: 'Perfume', icon: '🧴', type: 'media' },
+                            { name: 'León', icon: '🦁', type: 'alta' }
+                        ];
+
+                        autoSimInterval = setInterval(() => {
+                            const randomGift = gifts[Math.floor(Math.random() * gifts.length)];
+                            triggerGift(randomGift.name, randomGift.icon, randomGift.type);
+                        }, 14000);
+                    } else {
+                        btn.classList.remove('bg-pink-600', 'text-white');
+                        btn.classList.add('bg-slate-800');
+                        if (autoSimInterval) clearInterval(autoSimInterval);
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+</html>
